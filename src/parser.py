@@ -2,7 +2,7 @@ from rply import ParserGenerator
 from ast import (Number, Add, Sub, Mul, Div,
                  If, Statements, Bigger, Smaller,
                  Equal, Different, Attribution, VarDec,
-                 Identifier)
+                 Identifier, IfElse)
 
 
 class Parser():
@@ -13,31 +13,39 @@ class Parser():
              'PLUS', 'MINUS', 'MUL', 'DIV', 'IF',
              'BIGGER', 'SMALLER', 'EQUAL', 'DIFF',
              'OPEN_BRACKETS', 'CLOSE_BRACKETS', 'SEMI_COLON',
-             'ATTRIBUTION', 'IDENTIFIER', 'VAR'
+             'ATTRIBUTION', 'IDENTIFIER', 'VAR', 'ELSE'
              ],
         )
         self.builder = builder
         self.module = module
 
     def parse(self):
-        @self.pg.production('statement_list : statement SEMI_COLON')
+        @self.pg.production('program : statement_list')
+        def program(p):
+            return p[0]
+
+        @self.pg.production('statement_list : statement')
         def statement_list_one(p):
             return Statements(self.builder, self.module, p[0])
 
-        @self.pg.production('statement_list : statement_list statement SEMI_COLON')
+        @self.pg.production('statement_list : statement_list statement')
         def statement_list_rest(p):
             p[0].add_child(p[1])
             return p[0]
 
         @self.pg.production('statement : IF OPEN_PARENS rel CLOSE_PARENS OPEN_BRACKETS statement_list CLOSE_BRACKETS')
         def statement_if(p):
-            return If(self.builder, self.module, p[2], p[4])
+            return If(self.builder, self.module, p[2], p[5])
 
-        @self.pg.production('statement : VAR IDENTIFIER')
+        @self.pg.production('statement : IF OPEN_PARENS rel CLOSE_PARENS OPEN_BRACKETS statement_list CLOSE_BRACKETS ELSE OPEN_BRACKETS statement_list CLOSE_BRACKETS')
+        def statement_if(p):
+            return IfElse(self.builder, self.module, p[2], p[5], p[9])
+
+        @self.pg.production('statement : VAR IDENTIFIER SEMI_COLON')
         def var_dec(p):
             return VarDec(self.builder, self.module, p[1])
 
-        @self.pg.production('statement : IDENTIFIER ATTRIBUTION expr')
+        @self.pg.production('statement : IDENTIFIER ATTRIBUTION expr SEMI_COLON')
         def attribution(p):
             left = p[0]
             right = p[2]

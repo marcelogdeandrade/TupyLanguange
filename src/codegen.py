@@ -1,15 +1,19 @@
+from __future__ import print_function
 from lexer import Lexer
 from parser import Parser
 from llvmlite import ir, binding
 
 
 text_input = """
+var teste;
+var marcelo;
 SE (1 < 2){
-    var teste;
     teste := 5;
-    var marcelo;
     marcelo := teste;
-};
+} SENAO {
+    teste := 2;
+}
+marcelo := 3;
 """
 
 # Initialize binding
@@ -70,9 +74,9 @@ builder.ret_void()
 
 llvm_ir = str(module)
 engine = create_execution_engine()
-# mod = compile_ir(engine, llvm_ir)
+mod = compile_ir(engine, llvm_ir)
 
 print(llvm_ir)
 
 # with open("output.ll", 'w') as output_file:
-#     output_file.write(str(module))
+    # output_file.write(str(module))

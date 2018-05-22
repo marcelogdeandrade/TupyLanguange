@@ -93,8 +93,11 @@ class VarDec():
         self.value = value
 
     def eval(self):
-        ir.GlobalVariable(self.module,
+        initializer = ir.Constant(ir.IntType(32), int(0))
+        var = ir.GlobalVariable(self.module,
                           ir.IntType(32), self.value.value)
+        var.initializer = initializer
+
 
 
 class Statements():
@@ -121,3 +124,19 @@ class If():
     def eval(self):
         with self.builder.if_then(self.pred.eval()):
             self.block.eval()
+
+
+class IfElse():
+    def __init__(self, builder, module, pred, block1, block2):
+        self.builder = builder
+        self.module = module
+        self.pred = pred
+        self.block1 = block1
+        self.block2 = block2
+
+    def eval(self):
+        with self.builder.if_else(self.pred.eval()) as (then, otherwise):
+            with then:
+                self.block1.eval()
+            with otherwise:
+                self.block2.eval()

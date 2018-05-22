@@ -20,17 +20,17 @@ class Lexer():
         self.lexer.add('OPEN_PARENS', r'\(')
         self.lexer.add('CLOSE_PARENS', r'\)')
         self.lexer.add('OPEN_BRACKETS', r'\{')
-        self.lexer.add('CLOSE_BRACKERS', r'\}')
+        self.lexer.add('CLOSE_BRACKETS', r'\}')
         self.lexer.add('SEMI_COLON', r'\;')
         # Vars
         self.lexer.add('ATTRIBUTION', r':=')
         self.lexer.add('VAR', r'var')
-        # If
-        self.lexer.add('IF', r'SE')
-        self.lexer.add('IF', r'se')
         # Else
         self.lexer.add('ELSE', r'SENAO')
         self.lexer.add('ELSE', r'senao')
+        # If
+        self.lexer.add('IF', r'SE')
+        self.lexer.add('IF', r'se')
         # Identifier
         self.lexer.add('IDENTIFIER', r'[a-zA-Z_][a-zA-Z_0-9]*')
         self.lexer.ignore('\s+')
