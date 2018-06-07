@@ -3,8 +3,9 @@ program
    ;
 
 statement
-   : 'SE' rel 'ENTAO' '{' statement+ '}'
-   | 'SE' rel 'ENTAO' '{' statement+ '}' 'SENAO' '{' statement+ '}'
+   : 'SE' rel '{' statement+ '}'
+   | 'SE' rel  '{' statement+ '}' 'SENAO' '{' statement+ '}'
+   | 'ENQUANTO' rel ''{' statement+ '}'
    | expr ';'
    ;
 
