@@ -2,18 +2,18 @@ from __future__ import print_function
 from lexer import Lexer
 from parser import Parser
 from llvmlite import ir, binding
+from ctypes import CFUNCTYPE
 
 
 text_input = """
-var teste;
-var marcelo;
-SE (1 < 2){
-    teste := 5;
-    marcelo := teste;
+var x;
+x := 4 * 4 + 2;
+SE (x = 17){
+    x := 3;
 } SENAO {
-    teste := 2;
+    x := 1;
 }
-marcelo := 3;
+print(x);
 """
 
 # Initialize binding
@@ -48,6 +48,11 @@ def compile_ir(engine, llvm_ir):
     # Now add the module and make sure it is ready for execution
     engine.add_module(mod)
     engine.finalize_object()
+    fptr = engine.get_function_address("main")
+    py_func = CFUNCTYPE(None)(fptr)
+    print('--------------')
+    py_func()
+    print('\n --------------')
     engine.run_static_constructors()
     return mod
 
@@ -60,11 +65,16 @@ base_func = ir.Function(module, func_type, name="main")
 block = base_func.append_basic_block(name="entry")
 builder = ir.IRBuilder(block)
 
+# Declare Printf function
+voidptr_ty = ir.IntType(8).as_pointer()
+printf_ty = ir.FunctionType(ir.IntType(32), [voidptr_ty], var_arg=True)
+printf = ir.Function(module, printf_ty, name="printf")
+
 # Create lexer
 lexer = Lexer().get_lexer()
 tokens = lexer.lex(text_input)
 # Create parser
-pg = Parser(builder, module)
+pg = Parser(builder, module, printf)
 pg.parse()
 parser = pg.get_parser()
 
@@ -78,5 +88,5 @@ mod = compile_ir(engine, llvm_ir)
 
 print(llvm_ir)
 
-# with open("output.ll", 'w') as output_file:
-    # output_file.write(str(module))
+with open("output.ll", 'w') as output_file:
+    output_file.write(str(module))

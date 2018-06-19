@@ -8,8 +8,20 @@ class Number():
         self.module = module
 
     def eval(self):
-        i = ir.Constant(ir.IntType(32), int(self.value))
+        i = ir.Constant(ir.IntType(8), int(self.value))
         return i
+
+
+class Text():
+    def __init__(self, builder, module, value):
+        self.value = value
+        self.builder = builder
+        self.module = module
+
+    def eval(self):
+        b = bytearray(self.value)
+        n = len(b)
+        return ir.Constant(ir.ArrayType(ir.IntType(8), n), b)
 
 
 class Identifier():
@@ -93,11 +105,10 @@ class VarDec():
         self.value = value
 
     def eval(self):
-        initializer = ir.Constant(ir.IntType(32), int(0))
+        initializer = ir.Constant(ir.IntType(8), int(0))
         var = ir.GlobalVariable(self.module,
-                          ir.IntType(32), self.value.value)
+                                ir.IntType(8), self.value.value)
         var.initializer = initializer
-
 
 
 class Statements():
@@ -135,8 +146,36 @@ class IfElse():
         self.block2 = block2
 
     def eval(self):
-        with self.builder.if_else(self.pred.eval()) as (then, otherwise):
+        cond = self.pred.eval()
+        print(cond)
+        with self.builder.if_else(cond) as (then, otherwise):
             with then:
                 self.block1.eval()
             with otherwise:
                 self.block2.eval()
+
+
+class Print():
+    def __init__(self, builder, module, print_func, value):
+        self.builder = builder
+        self.module = module
+        self.value = value
+        self.print_func = print_func
+
+    def eval(self):
+        value = self.value.eval()
+
+        # Declare argument list
+        voidptr_ty = ir.IntType(8).as_pointer()
+        fmt = "%i \n\0"
+        c_fmt = ir.Constant(ir.ArrayType(ir.IntType(8), len(fmt)),
+                            bytearray(fmt.encode("utf8")))
+        global_fmt = ir.GlobalVariable(self.module, c_fmt.type, name="fstr")
+        global_fmt.linkage = 'internal'
+        global_fmt.global_constant = True
+        global_fmt.initializer = c_fmt
+        fmt_arg = self.builder.bitcast(global_fmt, voidptr_ty)
+
+        # Call Print Function
+        self.builder.call(self.print_func, [fmt_arg, value])
+        pass

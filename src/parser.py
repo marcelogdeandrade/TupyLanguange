@@ -2,22 +2,24 @@ from rply import ParserGenerator
 from ast import (Number, Add, Sub, Mul, Div,
                  If, Statements, Bigger, Smaller,
                  Equal, Different, Attribution, VarDec,
-                 Identifier, IfElse)
+                 Identifier, IfElse, Print)
 
 
 class Parser():
-    def __init__(self, builder, module):
+    def __init__(self, builder, module, print_func):
         self.pg = ParserGenerator(
             # A list of all token names, accepted by the parser.
             ['NUMBER', 'OPEN_PARENS', 'CLOSE_PARENS',
              'PLUS', 'MINUS', 'MUL', 'DIV', 'IF',
              'BIGGER', 'SMALLER', 'EQUAL', 'DIFF',
              'OPEN_BRACKETS', 'CLOSE_BRACKETS', 'SEMI_COLON',
-             'ATTRIBUTION', 'IDENTIFIER', 'VAR', 'ELSE'
+             'ATTRIBUTION', 'IDENTIFIER', 'VAR', 'ELSE', 'PRINT',
+             'QUOTE'
              ],
         )
         self.builder = builder
         self.module = module
+        self.print_func = print_func
 
     def parse(self):
         @self.pg.production('program : statement_list')
@@ -51,13 +53,18 @@ class Parser():
             right = p[2]
             return Attribution(self.builder, self.module, left, right)
 
+        @self.pg.production('statement : PRINT OPEN_PARENS expr CLOSE_PARENS SEMI_COLON')
+        def print_func(p):
+            value = p[2]
+            return Print(self.builder, self.module, self.print_func, value)
+
         @self.pg.production('rel : expr BIGGER expr')
         @self.pg.production('rel : expr SMALLER expr')
         @self.pg.production('rel : expr EQUAL expr')
         @self.pg.production('rel : expr DIFF expr')
         def rel(p):
             left = p[0]
-            right = p[0]
+            right = p[2]
             if p[1].gettokentype() == 'BIGGER':
                 return Bigger(self.builder, self.module, left, right)
             elif p[1].gettokentype() == 'SMALLER':
@@ -115,6 +122,10 @@ class Parser():
 
         @self.pg.production('factor : OPEN_PARENS expr CLOSE_PARENS')
         def expr_parens(p):
+            return p[1]
+
+        @self.pg.production('text : QUOTE IDENTIFIER QUOTE')
+        def text(p):
             return p[1]
 
         @self.pg.error

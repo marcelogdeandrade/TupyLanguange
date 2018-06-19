@@ -22,6 +22,7 @@ class Lexer():
         self.lexer.add('OPEN_BRACKETS', r'\{')
         self.lexer.add('CLOSE_BRACKETS', r'\}')
         self.lexer.add('SEMI_COLON', r'\;')
+        self.lexer.add('QUOTE', r'\"')
         # Vars
         self.lexer.add('ATTRIBUTION', r':=')
         self.lexer.add('VAR', r'var')
@@ -31,6 +32,9 @@ class Lexer():
         # If
         self.lexer.add('IF', r'SE')
         self.lexer.add('IF', r'se')
+        # Print
+        self.lexer.add('PRINT', r'PRINT')
+        self.lexer.add('PRINT', r'print')
         # Identifier
         self.lexer.add('IDENTIFIER', r'[a-zA-Z_][a-zA-Z_0-9]*')
         self.lexer.ignore('\s+')
